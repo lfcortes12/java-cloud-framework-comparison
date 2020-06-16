@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-order
+  labels:
+    app: spring-order
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: spring-order
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-order
+  labels:
+    app: spring-order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-order
+  template:
+    metadata:
+      labels:
+        app: spring-order
+    spec:
+      containers:
+        - name: spring-order
+          image: luiscortes/spring-order
+          imagePullPolicy: Always
+          env:
+#            - name: CLOUD_CONFIG_ENDPOINT
+#              value: http://book-store-registry-server:8761/config/
+#            - name: CLOUD_CONFIG_LABEL
+#              value: azure-kubernates
+            - name: JAVA_TOOL_OPTIONS
+              value: -Dspring.profiles.active=rancher -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n,quiet=y
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: "/actuator/health/readiness"
+              port: 8080
+              scheme: "HTTP"
+            failureThreshold: 3
+            initialDelaySeconds: 12
+            periodSeconds: 10
+            timeoutSeconds: 10
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: "/actuator/health/liveness"
+              port: 8080
+              scheme: "HTTP"
+            failureThreshold: 3
+            initialDelaySeconds: 8
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+
+---
+
+
+apiVersion: "extensions/v1beta1"
+kind: "Ingress"
+metadata:
+  labels:
+    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/version: "v3"
+  name: "spring-order"
+spec:
+  rules:
+    - host: ""
+      http:
+        paths:
+          - path: "/"
+            backend:
+              serviceName: "spring-order"
+              servicePort: 8080

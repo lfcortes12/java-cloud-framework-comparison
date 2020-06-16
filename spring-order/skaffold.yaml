@@ -1,0 +1,18 @@
+apiVersion: skaffold/v2alpha4
+kind: Config
+metadata:
+  name: spring-order
+build:
+  artifacts:
+  - image: luiscortes/spring-order
+    jib: {}
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment.yaml
+portForward:
+  - resourceType: deployment
+    resourceName: myDep
+    namespace: mynamespace  #
+    port: 8080 #
+    localPort: 8080 # *Optional*
