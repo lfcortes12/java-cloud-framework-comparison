@@ -28,6 +28,8 @@ dependencies {
 
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes:+'
+	implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-config:+'
+	
 
 
 	compileOnly 'org.projectlombok:lombok'
@@ -48,11 +50,10 @@ tasks.build.dependsOn tasks.jib
 
 jib {
 	from {
-		//image = 'adoptopenjdk/openjdk14-openj9:jre-14.0.1_7_openj9-0.20.0-alpine'
 		image = 'adoptopenjdk/openjdk14:jre-14.0.1_7-alpine'
 	}
 	to {
-		image = 'luiscortes/spring-order'
+		image = 'luiscortes/spring-order:0.6'
 
 	}
 	container {

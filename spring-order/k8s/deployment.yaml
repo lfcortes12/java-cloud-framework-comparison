@@ -1,3 +1,40 @@
+---
+apiVersion: "v1"
+kind: "ServiceAccount"
+metadata:
+  annotations:
+    app.quarkus.io/vcs-url: "https://github.com/lfcortes12/java-cloud-framework-comparison.git"
+    app.quarkus.io/build-timestamp: "2020-06-19 - 11:00:11 +0000"
+    app.quarkus.io/commit-id: "bd1ae4cdbec0dd2c0efd0156420ed0c75740acd5"
+  labels:
+    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/version: "0.3"
+    prometheus.io/scrape: "true"
+  name: "spring-order"
+  
+---
+
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: "RoleBinding"
+metadata:
+  annotations:
+    app.quarkus.io/vcs-url: "https://github.com/lfcortes12/java-cloud-framework-comparison.git"
+    app.quarkus.io/build-timestamp: "2020-06-19 - 11:00:11 +0000"
+    app.quarkus.io/commit-id: "bd1ae4cdbec0dd2c0efd0156420ed0c75740acd5"
+  labels:
+    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/version: "0.3"
+    prometheus.io/scrape: "true"
+  name: "spring-order:view"
+roleRef:
+  kind: "ClusterRole"
+  apiGroup: "rbac.authorization.k8s.io"
+  name: "view"
+subjects:
+- kind: "ServiceAccount"
+  name: "spring-order"
+  
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -31,9 +68,10 @@ spec:
       labels:
         app: spring-order
     spec:
+      serviceAccount: "spring-order"
       containers:
         - name: spring-order
-          image: luiscortes/spring-order
+          image: luiscortes/spring-order:0.6
           imagePullPolicy: Always
           env:
 #            - name: CLOUD_CONFIG_ENDPOINT
@@ -46,21 +84,21 @@ spec:
             - containerPort: 8080
           readinessProbe:
             httpGet:
-              path: "/actuator/health/readiness"
+              path: "/spring/actuator/health/readiness"
+              port: 8080
+              scheme: "HTTP"
+            failureThreshold: 3
+            initialDelaySeconds: 16
+            periodSeconds: 14
+            timeoutSeconds: 14
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: "/spring/actuator/health/liveness"
               port: 8080
               scheme: "HTTP"
             failureThreshold: 3
             initialDelaySeconds: 12
-            periodSeconds: 10
-            timeoutSeconds: 10
-            successThreshold: 1
-          livenessProbe:
-            httpGet:
-              path: "/actuator/health/liveness"
-              port: 8080
-              scheme: "HTTP"
-            failureThreshold: 3
-            initialDelaySeconds: 8
             periodSeconds: 30
             timeoutSeconds: 10
             successThreshold: 1
@@ -75,12 +113,13 @@ metadata:
     app.kubernetes.io/name: "spring-order"
     app.kubernetes.io/version: "v3"
   name: "spring-order"
+
 spec:
   rules:
     - host: ""
       http:
         paths:
-          - path: "/"
+          - path: /spring
             backend:
-              serviceName: "spring-order"
+              serviceName: spring-order
               servicePort: 8080
