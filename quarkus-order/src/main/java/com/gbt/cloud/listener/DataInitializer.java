@@ -1,0 +1,39 @@
+package com.gbt.cloud.listener;
+
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import javax.enterprise.event.Observes;
+import javax.transaction.Transactional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.gbt.cloud.model.Score;
+
+import io.quarkus.runtime.StartupEvent;
+import io.quarkus.runtime.configuration.ProfileManager;
+
+public class DataInitializer {
+
+	Logger log = LoggerFactory.getLogger(DataInitializer.class);
+
+	@Transactional
+	public void startup(@Observes StartupEvent startupEvent) {
+		log.debug("The application is starting with profile " + ProfileManager.getActiveProfile());
+		log.debug("Creating initial data");
+
+		//Score.deleteAll();
+		Score.persist(generateScores(10));
+		log.info("Counting Scores {}", Score.count());
+	}
+
+	List<Score> generateScores(final int size) {
+		Random random = new Random();
+		return IntStream.range(1, size).mapToObj(val -> new Score(random.nextInt(1000), random.nextInt(10)))
+				.collect(Collectors.toList());
+	}
+
+}
