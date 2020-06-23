@@ -62,7 +62,7 @@ db.getUser('gamescoreusrquarkus')
 # Quarkus Deployment
 
 ## Create / Edit configmap
-kubectl create configmap order-cm --from-file=application.properties  -o yaml --dry-run | kubectl apply -f -
+kubectl create configmap game-score-quarkus-cm --from-file=application.properties  -o yaml --dry-run | kubectl apply -f -
 ./gradlew quarkusBuild
  kubectl.exe apply -f build/kubernetes/kubernetes.yml
 check it out https://10.54.228.22/quarkus/game-score/key 

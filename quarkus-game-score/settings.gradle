@@ -8,4 +8,4 @@ pluginManagement {
       id 'io.quarkus' version "${quarkusPluginVersion}"
     }
 }
-rootProject.name='quarkus-order'
+rootProject.name='quarkus-game-score'

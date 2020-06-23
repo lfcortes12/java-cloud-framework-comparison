@@ -53,7 +53,7 @@ jib {
 		image = 'adoptopenjdk/openjdk14:jre-14.0.1_7-alpine'
 	}
 	to {
-		image = 'luiscortes/spring-order:0.6'
+		image = 'luiscortes/spring-game-score:0.6'
 
 	}
 	container {

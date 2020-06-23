@@ -7,10 +7,10 @@ metadata:
     app.quarkus.io/build-timestamp: "2020-06-19 - 11:00:11 +0000"
     app.quarkus.io/commit-id: "bd1ae4cdbec0dd2c0efd0156420ed0c75740acd5"
   labels:
-    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/name: "spring-game-score"
     app.kubernetes.io/version: "0.3"
     prometheus.io/scrape: "true"
-  name: "spring-order"
+  name: "spring-game-score"
   
 ---
 
@@ -22,25 +22,25 @@ metadata:
     app.quarkus.io/build-timestamp: "2020-06-19 - 11:00:11 +0000"
     app.quarkus.io/commit-id: "bd1ae4cdbec0dd2c0efd0156420ed0c75740acd5"
   labels:
-    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/name: "spring-game-score"
     app.kubernetes.io/version: "0.3"
     prometheus.io/scrape: "true"
-  name: "spring-order:view"
+  name: "spring-game-score:view"
 roleRef:
   kind: "ClusterRole"
   apiGroup: "rbac.authorization.k8s.io"
   name: "view"
 subjects:
 - kind: "ServiceAccount"
-  name: "spring-order"
+  name: "spring-game-score"
   
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-order
+  name: spring-game-score
   labels:
-    app: spring-order
+    app: spring-game-score
 spec:
   type: LoadBalancer
   ports:
@@ -48,30 +48,30 @@ spec:
       targetPort: 8080
       protocol: TCP
   selector:
-    app: spring-order
+    app: spring-game-score
 
 ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-order
+  name: spring-game-score
   labels:
-    app: spring-order
+    app: spring-game-score
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spring-order
+      app: spring-game-score
   template:
     metadata:
       labels:
-        app: spring-order
+        app: spring-game-score
     spec:
-      serviceAccount: "spring-order"
+      serviceAccount: "spring-game-score"
       containers:
-        - name: spring-order
-          image: luiscortes/spring-order:0.6
+        - name: spring-game-score
+          image: luiscortes/spring-game-score:0.6
           imagePullPolicy: Always
           env:
 #            - name: CLOUD_CONFIG_ENDPOINT
@@ -110,9 +110,9 @@ apiVersion: "extensions/v1beta1"
 kind: "Ingress"
 metadata:
   labels:
-    app.kubernetes.io/name: "spring-order"
+    app.kubernetes.io/name: "spring-game-score"
     app.kubernetes.io/version: "v3"
-  name: "spring-order"
+  name: "spring-game-score"
 
 spec:
   rules:
@@ -121,5 +121,5 @@ spec:
         paths:
           - path: /spring
             backend:
-              serviceName: spring-order
+              serviceName: spring-game-score
               servicePort: 8080
