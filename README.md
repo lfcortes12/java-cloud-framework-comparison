@@ -70,15 +70,128 @@ check it out https://10.54.228.22/quarkus/game-score/key
  # Spring Deployment
 
 ## Spring Deployment / Edit configmap
-kubectl create configmap spring-score --from-file=k8s/application.properties  -o yaml --dry-run | kubectl apply -f -
+kubectl create configmap game-score-spring-cm --from-file=k8s/application.properties  -o yaml --dry-run | kubectl apply -f -
 ./gradlew quarkusBuild
  kubectl.exe apply -f build/kubernetes/kubernetes.yml
  
 check it out https://10.54.228.22/spring/game-score/key
- 
+
+# AWS
+Install helm
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+helm help
+
+add repo
+helm install bitnami/mongodb --generate-name
+
+helm install mongodbgamescore \
+    --set auth.rootPassword=June2020.,auth.username=gamescoreusrspring,auth.password=gamescore,auth.database=springgamescoredb,architecture=replicaset \
+    bitnami/mongodb
+
+NAME: mongodbgamescore
+LAST DEPLOYED: Sun Jul  5 07:35:21 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+** Please be patient while the chart is being deployed **
+
+MongoDB can be accessed via port 27017 on the following DNS name(s) from within your cluster:
+
+    mongodbgamescore-0.mongodbgamescore-headless.default.svc.cluster.local
+    mongodbgamescore-1.mongodbgamescore-headless.default.svc.cluster.local
+
+
+To get the root password run:
+
+    export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace default mongodbgamescore -o jsonpath="{.data.mongodb-root-password}" | base64 --decode)
+
+To get the password for "gamescoreusrspring" run:
+
+    export MONGODB_PASSWORD=$(kubectl get secret --namespace default mongodbgamescore -o jsonpath="{.data.mongodb-password}" | base64 --decode)
+
+To connect to your database, create a MongoDB client container:
+
+    kubectl run --namespace default mongodbgamescore-client --rm --tty -i --restart='Never' --image docker.io/bitnami/mongodb:4.2.8-debian-10-r21 --command -- bash
+
+Then, run the following command:
+    mongo admin --host "mongodbgamescore-0.mongodbgamescore-headless.default.svc.cluster.local,mongodbgamescore-1.mongodbgamescore-headless.default.svc.cluster.local," --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD
+	
+-- show helm installed charts
+helm list
+-- to remove a chart
+helm uninstall [chartname]
+
+
+	
+	
+Deploy CM
+
+kubectl create configmap game-score-spring-cm --from-file=/mnt/c/dev/git/java-cloud-framework-comparison/spring-game-score/k8s/application.properties  -o yaml --dry-run | kubectl apply -f -
+
+
+db.createUser({ user: "gamescoreusrspring", pwd: "gamescore", roles: [ { role: "readWrite", db: "database" } ]})
+
+
+Delete deployment
+kubectl delete -f /mnt/c/dev/git/java-cloud-framework-comparison/spring-game-score/k8s/deployment.yaml
+
+Install eksctl https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html#installing-eksctl
+
+eksctl utils associate-iam-oidc-provider \
+    --region us-east-2 \
+    --cluster game-score \
+    --approve
+
+curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/iam-policy.json
+
+
+aws iam create-policy \
+    --policy-name ALBIngressControllerIAMPolicy \
+    --policy-document file:///mnt/c/dev/git/java-cloud-framework-comparison/spring-game-score/k8s/iam-policy.json
+	
+ARN policy returned was:
+
+{
+    "Policy": {
+        "PolicyName": "ALBIngressControllerIAMPolicy",
+        "PolicyId": "ANPA3GBC6YY6SDEQ2L7A6",
+        "Arn": "arn:aws:iam::768872465981:policy/ALBIngressControllerIAMPolicy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2020-07-05T13:06:48+00:00",
+        "UpdateDate": "2020-07-05T13:06:48+00:00"
+    }
+}
+
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/rbac-role.yaml
+
+--below performs for clusters created with eksctl  https://github.com/weaveworks/eksctl/issues/1930
+eksctl create iamserviceaccount \
+    --region us-east-2 \
+    --name alb-ingress-controller \
+    --namespace kube-system \
+    --cluster game-score \
+    --attach-policy-arn arn:aws:iam::768872465981:policy/ALBIngressControllerIAMPolicy \
+    --override-existing-serviceaccounts \
+    --approve
+	
+
+kubectl annotate serviceaccount -n kube-system alb-ingress-controller \
+eks.amazonaws.com/role-arn=arn:aws:iam::768872465981:role/eks-alb-ingress-controller
+
  
 #References
 https://cloud.spring.io/spring-cloud-static/spring-cloud-kubernetes/1.1.0.RELEASE/reference/html/#ribbon-discovery-in-kubernetes
+ 
+ 
  
  
  
