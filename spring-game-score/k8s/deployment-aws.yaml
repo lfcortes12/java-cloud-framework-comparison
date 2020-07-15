@@ -33,40 +33,40 @@ roleRef:
 subjects:
 - kind: "ServiceAccount"
   name: "spring-game-score"
-  
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-game-score
+  name: "spring-game-score"
   labels:
-    app: spring-game-score
+    app: "spring-game-score"
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
     - port: 8080
       targetPort: 8080
       protocol: TCP
   selector:
-    app: spring-game-score
+    app: "spring-game-score"
 
 ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-game-score
+  name: "spring-game-score"
   labels:
-    app: spring-game-score
+    app: "spring-game-score"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spring-game-score
+      app: "spring-game-score"
   template:
     metadata:
       labels:
-        app: spring-game-score
+        app: "spring-game-score"
     spec:
       serviceAccount: "spring-game-score"
       containers:
@@ -98,24 +98,22 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 10
             successThreshold: 1
-
 ---
-
-
-apiVersion: "extensions/v1beta1"
-kind: "Ingress"
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
   labels:
     app.kubernetes.io/name: "spring-game-score"
-    app.kubernetes.io/version: "v3"
+    app: spring-game-score
   name: "spring-game-score"
-
 spec:
   rules:
-    - host: ""
-      http:
+    - http:
         paths:
-          - path: /spring
+          - path: /spring/*
             backend:
               serviceName: spring-game-score
               servicePort: 8080
