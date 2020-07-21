@@ -1,7 +1,8 @@
 package com.gbt.cloud.springorder.repository;
 
-import com.gbt.cloud.springorder.model.Score;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface GameScoreRepository extends MongoRepository<Score, Long> {
+import com.gbt.cloud.springorder.model.Score;
+
+public interface GameScoreRepository extends ReactiveMongoRepository<Score, Long> {
 }
