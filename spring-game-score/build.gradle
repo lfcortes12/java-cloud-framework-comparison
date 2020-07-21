@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.micrometer:micrometer-registry-prometheus:1.5.2'
 
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes:+'
@@ -53,7 +54,7 @@ jib {
 		image = 'adoptopenjdk/openjdk14:jre-14.0.1_7-alpine'
 	}
 	to {
-		image = 'luiscortes/spring-game-score:0.10'
+		image = 'luiscortes/spring-game-score:0.12'
 
 	}
 	container {

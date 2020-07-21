@@ -91,7 +91,7 @@ helm install mongodbgamescore \
     bitnami/mongodb
 
 NAME: mongodbgamescore
-LAST DEPLOYED: Sun Jul  5 07:35:21 2020
+LAST DEPLOYED: Mon Jul  6 06:53:19 2020
 NAMESPACE: default
 STATUS: deployed
 REVISION: 1
@@ -141,8 +141,28 @@ kubectl delete -f /mnt/c/dev/git/java-cloud-framework-comparison/spring-game-sco
 
 Install eksctl https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html#installing-eksctl
 
+
+eksctl create cluster \
+ --name game-score \
+ --version 1.16 \
+ --without-nodegroup
+ 
+ 
+ eksctl create nodegroup \
+--cluster game-score \
+--version auto \
+--name standard-workers \
+--node-type t2.micro \
+--node-ami auto \
+--nodes 3 \
+--nodes-min 1 \
+--nodes-max 4
+ 
+ 
+ 
+
 eksctl utils associate-iam-oidc-provider \
-    --region us-east-2 \
+    --region us-east-1 \
     --cluster game-score \
     --approve
 
@@ -158,15 +178,15 @@ ARN policy returned was:
 {
     "Policy": {
         "PolicyName": "ALBIngressControllerIAMPolicy",
-        "PolicyId": "ANPA3GBC6YY6SDEQ2L7A6",
+        "PolicyId": "ANPA3GBC6YY6UABQPX57O",
         "Arn": "arn:aws:iam::768872465981:policy/ALBIngressControllerIAMPolicy",
         "Path": "/",
         "DefaultVersionId": "v1",
         "AttachmentCount": 0,
         "PermissionsBoundaryUsageCount": 0,
         "IsAttachable": true,
-        "CreateDate": "2020-07-05T13:06:48+00:00",
-        "UpdateDate": "2020-07-05T13:06:48+00:00"
+        "CreateDate": "2020-07-06T13:17:34+00:00",
+        "UpdateDate": "2020-07-06T13:17:34+00:00"
     }
 }
 
@@ -175,7 +195,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingre
 
 --below performs for clusters created with eksctl  https://github.com/weaveworks/eksctl/issues/1930
 eksctl create iamserviceaccount \
-    --region us-east-2 \
+    --region us-east-1 \
     --name alb-ingress-controller \
     --namespace kube-system \
     --cluster game-score \
@@ -186,6 +206,56 @@ eksctl create iamserviceaccount \
 
 kubectl annotate serviceaccount -n kube-system alb-ingress-controller \
 eks.amazonaws.com/role-arn=arn:aws:iam::768872465981:role/eks-alb-ingress-controller
+
+
+curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/alb-ingress-controller.yaml" \
+     | sed "s/# - --cluster-name=devCluster/- --cluster-name=game-score/g" \
+	 | sed "s/# - --aws-region=us-west-1/- --aws-region=us-east-1/g" \
+	 | sed "s/# - --aws-vpc-id=vpc-xxxxxx/- --aws-vpc-id=vpc-0d8e57eddcf4b6777/g" \
+     | kubectl apply -f -
+	 
+	 
+#GCP Deployment
+## MongoDB
+
+helm install mongodbgamescore \
+    --set auth.rootPassword=June2020.,auth.username=gamescoreusrspring,auth.password=gamescore,auth.database=springgamescoredb,architecture=replicaset \
+    bitnami/mongodb
+	
+	
+NAME: mongodbgamescore
+LAST DEPLOYED: Thu Jul 16 12:45:08 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+** Please be patient while the chart is being deployed **
+
+MongoDB can be accessed via port 27017 on the following DNS name(s) from within your cluster:
+
+    mongodbgamescore-0.mongodbgamescore-headless.default.svc.cluster.local
+    mongodbgamescore-1.mongodbgamescore-headless.default.svc.cluster.local
+
+
+To get the root password run:
+
+    export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace default mongodbgamescore -o jsonpath="{.data.mongodb-root-password}" | base64 --decode)
+
+To get the password for "gamescoreusrspring" run:
+
+    export MONGODB_PASSWORD=$(kubectl get secret --namespace default mongodbgamescore -o jsonpath="{.data.mongodb-password}" | base64 --decode)
+
+To connect to your database, create a MongoDB client container:
+
+    kubectl run --namespace default mongodbgamescore-client --rm --tty -i --restart='Never' --image docker.io/bitnami/mongodb:4.2.8-debian-10-r21 --command -- bash
+
+Then, run the following command:
+    mongo admin --host "mongodbgamescore-0.mongodbgamescore-headless.default.svc.cluster.local,mongodbgamescore-1.mongodbgamescore-headless.default.svc.cluster.local," --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD
+	
+	
+## Create configmap
+ kubectl create configmap game-score-spring-cm --from-file=k8s/application-gcp.properties  -o yaml --dry-run | kubectl apply -f -
 
  
 #References

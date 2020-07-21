@@ -1,5 +1,7 @@
 package com.gbt.cloud.listener;
 
+import static io.quarkus.mongodb.panache.PanacheMongoEntityBase.persist;
+
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -19,19 +21,20 @@ import io.quarkus.runtime.configuration.ProfileManager;
 public class DataInitializer {
 
 	Logger log = LoggerFactory.getLogger(DataInitializer.class);
+	private final Random random = new Random();
 
 	@Transactional
 	public void startup(@Observes StartupEvent startupEvent) {
-		log.debug("The application is starting with profile " + ProfileManager.getActiveProfile());
+		log.debug("The application is starting with profile {} ", ProfileManager.getActiveProfile());
 		log.debug("Creating initial data");
 
 		//Score.deleteAll();
-		Score.persist(generateScores(10));
+		persist(generateScores(50));
 		log.info("Counting Scores {}", Score.count());
 	}
 
 	List<Score> generateScores(final int size) {
-		Random random = new Random();
+		
 		return IntStream.range(1, size).mapToObj(val -> new Score(random.nextInt(1000), random.nextInt(10)))
 				.collect(Collectors.toList());
 	}

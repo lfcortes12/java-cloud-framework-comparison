@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,12 +29,12 @@ public class GameScoreResource {
 		this.gameScoreKey = gameScoreKey;
 	}
 
-	@GetMapping(path = "/key")
+	@GetMapping(path = "/key", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> getKey() {
 		return ResponseEntity.ok(gameScoreKey);
 	}
 
-	@GetMapping(path = "/search")
+	@GetMapping(path = "/scores", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Score>> getAll() {
 		return ResponseEntity.ok(gameScoreRepository.findAll());
 	}

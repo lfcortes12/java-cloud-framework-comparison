@@ -23,11 +23,9 @@ public class DataInitializer {
     private final GameScoreRepository gameScoreRepository;
     @EventListener(ApplicationReadyEvent.class)
     public void dataInitializer() {
-
         gameScoreRepository.deleteAll();
-        gameScoreRepository.saveAll(generateScores(10));
+        gameScoreRepository.saveAll(generateScores(50));
         log.info("Counting Scores {}", gameScoreRepository.count());
-
     }
 
 

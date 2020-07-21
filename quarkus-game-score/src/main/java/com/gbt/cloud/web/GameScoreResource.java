@@ -1,5 +1,7 @@
 package com.gbt.cloud.web;
 
+import static com.gbt.cloud.model.Score.findAll;
+
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -25,9 +27,9 @@ public class GameScoreResource {
 	}
 
 	@GET
-	@Path("/search")
+	@Path("/scores")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Score> getScores() {
-	    return Score.findAll().list();
+	    return findAll().list();
 	}
 }
